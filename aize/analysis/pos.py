@@ -2,20 +2,19 @@
 import re
 import nltk
 
-try:
-    nltk.data.find("taggers/averaged_perceptron_tagger")
-except LookupError:
-    nltk.download("averaged_perceptron_tagger", quiet=True)
+# Support both old (averaged_perceptron_tagger) and new (averaged_perceptron_tagger_eng)
+# NLTK versions — download whichever is missing.
+for _resource in ("averaged_perceptron_tagger", "averaged_perceptron_tagger_eng"):
+    try:
+        nltk.data.find(f"taggers/{_resource}")
+    except LookupError:
+        nltk.download(_resource, quiet=True)
 
-try:
-    nltk.data.find("tokenizers/punkt")
-except LookupError:
-    nltk.download("punkt", quiet=True)
-
-try:
-    nltk.data.find("tokenizers/punkt_tab")
-except LookupError:
-    nltk.download("punkt_tab", quiet=True)
+for _resource in ("punkt", "punkt_tab"):
+    try:
+        nltk.data.find(f"tokenizers/{_resource}")
+    except LookupError:
+        nltk.download(_resource, quiet=True)
 
 # POS tag groups (Penn Treebank)
 _TAG_GROUPS = {
