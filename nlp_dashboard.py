@@ -81,12 +81,13 @@ with st.sidebar:
     uploaded = st.file_uploader(
         "Upload .txt files", type=["txt"], accept_multiple_files=True
     )
-    lang_map = {}
+    lang_map = {}  # keyed by (index, name) to survive duplicate filenames
     if uploaded:
         st.markdown("**Language per file**")
-        for f in uploaded:
-            lang_map[f.name] = st.selectbox(
-                f.name, ["english", "spanish"], key=f"lang_{f.name}"
+        for i, f in enumerate(uploaded):
+            # Use index in widget key so duplicate filenames don't crash Streamlit
+            lang_map[(i, f.name)] = st.selectbox(
+                f.name, ["english", "spanish"], key=f"lang_{i}_{f.name}"
             )
     st.markdown("---")
     st.markdown("**aize v0.1.0**  \n[API docs →](http://localhost:8000/docs)")
@@ -128,10 +129,30 @@ def load_file(name: str, content: bytes, language: str):
     return {"name": name, "text": text, "language": language, **results}
 
 files_data = {}
-for f in uploaded:
+_name_counts: dict[str, int] = {}
+load_errors = []
+
+for i, f in enumerate(uploaded):
+    # Deduplicate display names: "file.txt", "file.txt (2)", "file.txt (3)", …
+    _name_counts[f.name] = _name_counts.get(f.name, 0) + 1
+    display_name = f.name if _name_counts[f.name] == 1 else f"{f.name} ({_name_counts[f.name]})"
+
+    language = lang_map.get((i, f.name), "english")
     content = f.read()
-    data = load_file(f.name, content, lang_map.get(f.name, "english"))
-    files_data[f.name] = data
+    try:
+        data = load_file(display_name, content, language)
+        files_data[display_name] = data
+    except Exception as exc:
+        load_errors.append((display_name, str(exc)))
+
+# Show friendly error messages instead of raw tracebacks
+if load_errors:
+    for fname, msg in load_errors:
+        st.error(f"⚠️ Could not analyse **{fname}**: {msg}")
+
+if not files_data:
+    st.warning("No files could be analysed. Please check your uploads and try again.")
+    st.stop()
 
 names = list(files_data.keys())
 texts = [d["text"] for d in files_data.values()]
