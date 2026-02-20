@@ -55,12 +55,22 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-PLOTLY_THEME = dict(
+# PX_THEME: safe to spread into px.*() function calls (template only).
+# PLOTLY_LAYOUT: full layout properties for fig.update_layout() calls.
+PX_THEME = dict(template="plotly_dark")
+PLOTLY_LAYOUT = dict(
     template="plotly_dark",
     paper_bgcolor="#1e2233",
     plot_bgcolor="#1e2233",
     font_color="#c8cfe0",
 )
+
+
+def _theme(fig):
+    """Apply the dark layout theme to any plotly figure and return it."""
+    fig.update_layout(**PLOTLY_LAYOUT)
+    return fig
+
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -140,7 +150,7 @@ with tabs[0]:
             "Spaces": f"{s['spaces']:,}",
             "Language": d["language"].capitalize(),
         })
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
+    st.dataframe(pd.DataFrame(rows), width='stretch')
 
     # Metric cards
     cols = st.columns(len(files_data))
@@ -164,10 +174,10 @@ with tabs[1]:
         labels={"x": "Word Length (chars)", "y": "Unique Words"},
         title=f"Word-Length Distribution — {sel}",
         color=list(gw.values()), color_continuous_scale="Blues",
-        **PLOTLY_THEME
+        **PX_THEME
     )
-    fig.update_layout(coloraxis_showscale=False)
-    st.plotly_chart(fig, use_container_width=True)
+    fig.update_layout(coloraxis_showscale=False, **PLOTLY_LAYOUT)
+    st.plotly_chart(fig, width='stretch')
 
 # ── 3. ZIPF'S LAW ─────────────────────────────────────────────────────────────
 with tabs[2]:
@@ -182,9 +192,9 @@ with tabs[2]:
     fig.update_layout(
         xaxis_type="log", yaxis_type="log",
         xaxis_title="Rank", yaxis_title="Frequency",
-        title="Zipf's Law (log-log)", **PLOTLY_THEME
+        title="Zipf's Law (log-log)", **PLOTLY_LAYOUT
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     st.subheader("Hapax / Dis Legomena")
     rows = []
@@ -196,7 +206,7 @@ with tabs[2]:
             "Dis legomena (twice) %": z["dis_pct"],
             "Freq > 2 %": z["freq_gt2_pct"],
         })
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
+    st.dataframe(pd.DataFrame(rows), width='stretch')
 
 # ── 4. HEAP'S LAW ─────────────────────────────────────────────────────────────
 with tabs[3]:
@@ -210,15 +220,15 @@ with tabs[3]:
     fig.update_layout(
         xaxis_type="log", yaxis_type="log",
         xaxis_title="Tokens", yaxis_title="Unique Types",
-        title="Heap's Law (log-log)", **PLOTLY_THEME
+        title="Heap's Law (log-log)", **PLOTLY_LAYOUT
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     rows = [{"File": n, "Tokens": d["heaps"]["total_tokens"],
              "Types": d["heaps"]["total_types"],
              "Diversity %": d["heaps"]["diversity_pct"]}
             for n, d in files_data.items()]
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
+    st.dataframe(pd.DataFrame(rows), width='stretch')
 
 # ── 5. STOP WORDS ─────────────────────────────────────────────────────────────
 with tabs[4]:
@@ -228,14 +238,14 @@ with tabs[4]:
              "Density %": d["stopwords"]["density_pct"],
              "Language": d["language"].capitalize()}
             for n, d in files_data.items()]
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
+    st.dataframe(pd.DataFrame(rows), width='stretch')
 
     df_sw = pd.DataFrame(rows)
     fig = px.bar(df_sw, x="File", y="Density %", color="Density %",
                  color_continuous_scale="Reds", title="Stop-Word Density (%)",
-                 **PLOTLY_THEME)
-    fig.update_layout(coloraxis_showscale=False)
-    st.plotly_chart(fig, use_container_width=True)
+                 **PX_THEME)
+    fig.update_layout(coloraxis_showscale=False, **PLOTLY_LAYOUT)
+    st.plotly_chart(fig, width='stretch')
 
 # ── 6. VOCAB COMPARISON ───────────────────────────────────────────────────────
 with tabs[5]:
@@ -266,9 +276,10 @@ with tabs[5]:
             labels={"x": "", "y": "Word Count"},
             color=["Only in A", "Common", "Only in B"],
             title=f"Vocabulary Overlap: {a} vs {b}",
-            **PLOTLY_THEME
+            **PX_THEME
         )
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(**PLOTLY_LAYOUT)
+        st.plotly_chart(fig, width='stretch')
 
 # ── 7. TF-IDF ─────────────────────────────────────────────────────────────────
 with tabs[6]:
@@ -284,9 +295,10 @@ with tabs[6]:
                      title=f"TF-IDF Keywords — {name}",
                      labels={"x": "TF-IDF Score", "y": "Term"},
                      color=list(scores), color_continuous_scale="Blues",
-                     **PLOTLY_THEME)
-        fig.update_layout(yaxis={"autorange": "reversed"}, coloraxis_showscale=False)
-        st.plotly_chart(fig, use_container_width=True)
+                     **PX_THEME)
+        fig.update_layout(yaxis={"autorange": "reversed"}, coloraxis_showscale=False,
+                          **PLOTLY_LAYOUT)
+        st.plotly_chart(fig, width='stretch')
 
 # ── 8. N-GRAMS ────────────────────────────────────────────────────────────────
 with tabs[7]:
@@ -299,18 +311,18 @@ with tabs[7]:
         if bigrams:
             bg_df = pd.DataFrame(bigrams, columns=["Bigram", "Count"])
             fig = px.bar(bg_df, x="Count", y="Bigram", orientation="h",
-                         title="Top Bigrams", **PLOTLY_THEME)
-            fig.update_layout(yaxis={"autorange": "reversed"})
-            st.plotly_chart(fig, use_container_width=True)
+                         title="Top Bigrams", **PX_THEME)
+            fig.update_layout(yaxis={"autorange": "reversed"}, **PLOTLY_LAYOUT)
+            st.plotly_chart(fig, width='stretch')
 
     with col2:
         trigrams = compute_ngrams(files_data[sel_ng]["text"], n=3, top_n=15)
         if trigrams:
             tg_df = pd.DataFrame(trigrams, columns=["Trigram", "Count"])
             fig = px.bar(tg_df, x="Count", y="Trigram", orientation="h",
-                         title="Top Trigrams", **PLOTLY_THEME)
-            fig.update_layout(yaxis={"autorange": "reversed"})
-            st.plotly_chart(fig, use_container_width=True)
+                         title="Top Trigrams", **PX_THEME)
+            fig.update_layout(yaxis={"autorange": "reversed"}, **PLOTLY_LAYOUT)
+            st.plotly_chart(fig, width='stretch')
 
 # ── 9. SENTIMENT ──────────────────────────────────────────────────────────────
 with tabs[8]:
@@ -321,14 +333,14 @@ with tabs[8]:
         rows.append({"File": name, "Label": s["label"],
                      "Positive": s["positive"], "Negative": s["negative"],
                      "Neutral": s["neutral"], "Compound": s["compound"]})
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
+    st.dataframe(pd.DataFrame(rows), width='stretch')
 
     df_sent = pd.DataFrame(rows)
     fig = go.Figure()
     for col, color in [("Positive", "#7cf498"), ("Negative", "#f47c7c"), ("Neutral", "#7c8dfc")]:
         fig.add_trace(go.Bar(name=col, x=df_sent["File"], y=df_sent[col], marker_color=color))
-    fig.update_layout(barmode="stack", title="Sentiment Breakdown per File", **PLOTLY_THEME)
-    st.plotly_chart(fig, use_container_width=True)
+    fig.update_layout(barmode="stack", title="Sentiment Breakdown per File", **PLOTLY_LAYOUT)
+    st.plotly_chart(fig, width='stretch')
 
     # Compound gauge per file
     for name, d in files_data.items():
@@ -349,8 +361,8 @@ with tabs[8]:
                 "threshold": {"line": {"color": "white", "width": 2}, "value": compound},
             },
         ))
-        fig.update_layout(height=250, paper_bgcolor="#1e2233", font_color="#c8cfe0")
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(height=250, **PLOTLY_LAYOUT)
+        st.plotly_chart(fig, width='stretch')
 
 # ── 10. POS TAGS ──────────────────────────────────────────────────────────────
 with tabs[9]:
@@ -368,9 +380,9 @@ with tabs[9]:
         fig.add_trace(go.Bar(name=tag, x=df_pos.index.tolist(),
                              y=df_pos[tag].tolist(),
                              marker_color=colors[i % len(colors)]))
-    fig.update_layout(barmode="stack", title="POS Tag Distribution", **PLOTLY_THEME)
-    st.plotly_chart(fig, use_container_width=True)
-    st.dataframe(df_pos, use_container_width=True)
+    fig.update_layout(barmode="stack", title="POS Tag Distribution", **PLOTLY_LAYOUT)
+    st.plotly_chart(fig, width='stretch')
+    st.dataframe(df_pos, width='stretch')
 
 # ── 11. READABILITY ───────────────────────────────────────────────────────────
 with tabs[10]:
@@ -387,20 +399,20 @@ with tabs[10]:
             "Words": r["words"],
             "Syllables": r["syllables"],
         })
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
+    st.dataframe(pd.DataFrame(rows), width='stretch')
 
     df_r = pd.DataFrame(rows)
     fig = px.bar(df_r, x="File", y="Flesch Reading Ease",
                  color="Flesch Reading Ease", color_continuous_scale="Greens",
-                 title="Flesch Reading Ease (higher = easier)", **PLOTLY_THEME)
-    fig.update_layout(coloraxis_showscale=False)
-    st.plotly_chart(fig, use_container_width=True)
+                 title="Flesch Reading Ease (higher = easier)", **PX_THEME)
+    fig.update_layout(coloraxis_showscale=False, **PLOTLY_LAYOUT)
+    st.plotly_chart(fig, width='stretch')
 
     fig2 = px.bar(df_r, x="File", y="FK Grade Level",
                   color="FK Grade Level", color_continuous_scale="Oranges",
-                  title="Flesch-Kincaid Grade Level", **PLOTLY_THEME)
-    fig2.update_layout(coloraxis_showscale=False)
-    st.plotly_chart(fig2, use_container_width=True)
+                  title="Flesch-Kincaid Grade Level", **PX_THEME)
+    fig2.update_layout(coloraxis_showscale=False, **PLOTLY_LAYOUT)
+    st.plotly_chart(fig2, width='stretch')
 
 # ── 12. WORD CLOUD ────────────────────────────────────────────────────────────
 with tabs[11]:
@@ -409,4 +421,4 @@ with tabs[11]:
     with st.spinner("Generating word cloud…"):
         png = generate_wordcloud(files_data[sel_wc]["text"])
     img = Image.open(io.BytesIO(png))
-    st.image(img, caption=sel_wc, use_container_width=True)
+    st.image(img, caption=sel_wc, width='stretch')
