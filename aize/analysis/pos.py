@@ -38,7 +38,7 @@ def analyze_pos(text: str) -> dict:
         {"Noun": int, "Verb": int, "Adjective": int, ...}
     """
     # Work on a sample to keep it fast for large files
-    sample = text[:50_000]
+    sample = text[:10_000]  # POS quality plateaus well before 10k chars; cap for speed
     try:
         tokens = nltk.word_tokenize(sample)
     except Exception:

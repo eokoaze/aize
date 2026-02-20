@@ -3,6 +3,7 @@ aize NLP Dashboard
 Run with: streamlit run nlp_dashboard.py
 """
 import sys, os, io
+from concurrent.futures import ThreadPoolExecutor, as_completed
 sys.path.insert(0, os.path.dirname(__file__))
 
 import streamlit as st
@@ -106,19 +107,25 @@ if not uploaded:
 @st.cache_data(show_spinner="Analysing…")
 def load_file(name: str, content: bytes, language: str):
     text = content.decode("utf-8", errors="ignore")
-    return {
-        "name":        name,
-        "text":        text,
-        "language":    language,
-        "stats":       compute_stats(text),
-        "groupwords":  analyze_groupwords(text),
-        "zipf":        analyze_zipf(text),
-        "heaps":       analyze_heaps(text),
-        "stopwords":   calculate_density(text, language),
-        "sentiment":   analyze_sentiment(text),
-        "readability": compute_readability(text),
-        "pos":         analyze_pos(text),
+
+    # Run all independent analyses in parallel for maximum speed.
+    tasks = {
+        "stats":       lambda: compute_stats(text),
+        "groupwords":  lambda: analyze_groupwords(text),
+        "zipf":        lambda: analyze_zipf(text),
+        "heaps":       lambda: analyze_heaps(text),
+        "stopwords":   lambda: calculate_density(text, language),
+        "sentiment":   lambda: analyze_sentiment(text),
+        "readability": lambda: compute_readability(text),
+        "pos":         lambda: analyze_pos(text),
     }
+    results = {}
+    with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
+        futures = {pool.submit(fn): key for key, fn in tasks.items()}
+        for future in as_completed(futures):
+            results[futures[future]] = future.result()
+
+    return {"name": name, "text": text, "language": language, **results}
 
 files_data = {}
 for f in uploaded:
