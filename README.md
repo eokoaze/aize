@@ -321,16 +321,7 @@ The dashboard lets you upload one or more `.txt` files and interactively explore
 
 ## FastAPI Backend
 
-A REST API is included for programmatic or remote access to the toolkit.
-
-```bash
-uvicorn api:app --reload
-```
-
-The API will be available at `http://127.0.0.1:8000`. Interactive docs are auto-generated at:
-
-- **Swagger UI**: `http://127.0.0.1:8000/docs`
-- **ReDoc**: `http://127.0.0.1:8000/redoc`
+> 🚧 **Coming Soon** — A REST API backend powered by FastAPI is currently in development. It will expose all analysis modules as HTTP endpoints with auto-generated Swagger docs.
 
 ---
 
