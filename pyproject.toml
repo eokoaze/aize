@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aize"
+version = "0.1.0"
+description = "aize — lightweight NLP analysis toolkit (Zipf, Heap's law, TF-IDF, sentiment, readability & more)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+  { name = "eokoaze" },
+]
+keywords = [
+  "nlp", "natural-language-processing", "text-analysis",
+  "zipf", "tfidf", "sentiment", "readability", "wordcloud",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Text Processing :: Linguistic",
+]
+
+# Core library dependencies only — keeps `pip install aize` lean
+dependencies = [
+  "nltk>=3.8",
+  "scikit-learn>=1.2",
+  "wordcloud>=1.9",
+  "pandas>=1.5",
+]
+
+[project.optional-dependencies]
+# Interactive Streamlit dashboard
+dashboard = [
+  "streamlit>=1.28",
+  "plotly>=5.0",
+  "Pillow>=9.0",
+]
+# FastAPI REST backend
+api = [
+  "fastapi>=0.100",
+  "uvicorn>=0.23",
+  "python-multipart>=0.0.6",
+]
+# Everything — convenience meta-extra
+all = [
+  "aize[dashboard]",
+  "aize[api]",
+]
+# Development tools
+dev = [
+  "aize[all]",
+  "build>=1.0",
+  "twine>=5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/eokoaze/aize"
+Repository = "https://github.com/eokoaze/aize"
+"Bug Tracker" = "https://github.com/eokoaze/aize/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aize*"]

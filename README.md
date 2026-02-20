@@ -1,5 +1,9 @@
 # aize · NLP Analysis Toolkit
 
+[![PyPI version](https://img.shields.io/pypi/v/aize.svg)](https://pypi.org/project/aize/)
+[![Python](https://img.shields.io/pypi/pyversions/aize.svg)](https://pypi.org/project/aize/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > A lightweight, pip-installable Python library for deep text analysis — covering everything from Zipf's law to sentiment, readability, TF-IDF, and more. Comes with a Streamlit dashboard and a FastAPI backend out of the box.
 
 ---
@@ -53,18 +57,36 @@
 
 ## Installation
 
+### Core library
+
+```bash
+pip install aize
+```
+
+### With the Streamlit dashboard
+
+```bash
+pip install aize[dashboard]
+```
+
+### With the FastAPI backend
+
+```bash
+pip install aize[api]
+```
+
+### Everything (dashboard + API)
+
+```bash
+pip install aize[all]
+```
+
 ### From source (development)
 
 ```bash
 git clone https://github.com/eokoaze/aize.git
 cd aize
-pip install -e .
-```
-
-### From PyPI *(coming soon)*
-
-```bash
-pip install aize
+pip install -e .[all]
 ```
 
 > **Python 3.9+** is required.
@@ -346,10 +368,13 @@ aize/
 │       ├── readability.py       # Flesch-Kincaid scores
 │       ├── pos.py               # POS tagging
 │       └── wordcloud_gen.py     # Word cloud generation
+├── .github/workflows/
+│   └── publish.yml              # Auto-publish to PyPI on version tags
 ├── nlp_dashboard.py             # Streamlit dashboard
 ├── api.py                       # FastAPI REST backend
-├── setup.py                     # Package configuration
-├── requirements.txt             # Dependencies
+├── pyproject.toml               # Package config & dependency extras
+├── MANIFEST.in                  # Source distribution file rules
+├── requirements.txt             # All-inclusive dev requirements
 └── README.md
 ```
 

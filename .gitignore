@@ -10,6 +10,7 @@ dist/
 *.egg-info/
 *.egg
 MANIFEST
+aize.egg-info/
 
 # Virtual environments
 .venv/
