@@ -56,7 +56,7 @@
 ### From source (development)
 
 ```bash
-git clone https://github.com/<your-username>/aize.git
+git clone https://github.com/eokoaze/aize.git
 cd aize
 pip install -e .
 ```
