@@ -4,6 +4,10 @@ Run with: streamlit run nlp_dashboard.py
 """
 import sys, os, io
 from concurrent.futures import ThreadPoolExecutor, as_completed
+try:
+    from langdetect import detect as _langdetect
+except ImportError:
+    _langdetect = None
 sys.path.insert(0, os.path.dirname(__file__))
 
 import streamlit as st
@@ -73,6 +77,22 @@ def _theme(fig):
     return fig
 
 
+# Supported languages and their langdetect ISO codes
+_SUPPORTED = ["english", "spanish"]
+_LANG_CODE_MAP = {"en": "english", "es": "spanish"}
+
+
+def _detect_language(text: str) -> str:
+    """Auto-detect language from a text sample. Falls back to 'english'."""
+    if _langdetect is None or not text.strip():
+        return "english"
+    try:
+        code = _langdetect(text[:3_000])
+        return _LANG_CODE_MAP.get(code, "english")
+    except Exception:
+        return "english"
+
+
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🔬 aize NLP")
@@ -83,11 +103,18 @@ with st.sidebar:
     )
     lang_map = {}  # keyed by (index, name) to survive duplicate filenames
     if uploaded:
-        st.markdown("**Language per file**")
+        st.markdown("**Language per file** *(auto-detected — override if needed)*")
         for i, f in enumerate(uploaded):
-            # Use index in widget key so duplicate filenames don't crash Streamlit
+            # Peek at first 3 000 chars for detection, then reset pointer
+            sample = f.read(3_000).decode("utf-8", errors="ignore")
+            f.seek(0)
+            detected = _detect_language(sample)
             lang_map[(i, f.name)] = st.selectbox(
-                f.name, ["english", "spanish"], key=f"lang_{i}_{f.name}"
+                f.name,
+                _SUPPORTED,
+                index=_SUPPORTED.index(detected),
+                key=f"lang_{i}_{f.name}",
+                help=f"Auto-detected: {detected}",
             )
     st.markdown("---")
     st.markdown("**aize v0.1.0**  \n[API docs →](http://localhost:8000/docs)")
